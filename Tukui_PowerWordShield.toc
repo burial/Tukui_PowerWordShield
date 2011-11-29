@@ -1,0 +1,10 @@
+## Interface: 40300
+## Title: |cffC495DDTukui:|r Power Word Shield
+## Notes: tracks your pws
+## Author: burial
+## Version: 1
+## RequiredDeps: Tukui
+## LoadManagers: AddonLoader
+## X-LoadOn-Class: Priest
+
+main.lua
