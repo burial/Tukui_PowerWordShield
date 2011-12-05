@@ -1,7 +1,8 @@
+N, NS = ...
 T, C, L = unpack Tukui
 return nil if select 2, UnitClass('player') ~= 'PRIEST'
 
-mod = CreateFrame('statusbar', 'Tukui_PowerWordShield', UIParent)
+mod = CreateFrame('statusbar', N, UIParent)
 mod\SetScript('OnEvent', (event, ...) => self[event](self, ...))
 mod\RegisterEvent('ADDON_LOADED')
 
@@ -10,19 +11,17 @@ holyWalk = nil
 
 duration = 0
 
-tt = CreateFrame('GameTooltip', 'Tukui_PowerWordShieldTooltip', nil, 'GameTooltipTemplate')
-tt\SetOwner(WorldFrame, 'ANCHOR_NONE')
+CreateFrame('GameTooltip', 'Tukui_PowerWordShieldTooltip', nil, 'GameTooltipTemplate')\SetOwner(WorldFrame, 'ANCHOR_NONE')
 
 ParseTooltip = ->
-  tt\ClearLines!
-  tt\SetUnitBuff('player', 'Power Word: Shield')
-  text = Tukui_PowerWordShieldTooltipTextLeft2\GetText!
-  text and tonumber(text\match(".* (%d+%s?) .*")) or '! ! ! ! !'
+  Tukui_PowerWordShieldTooltip\ClearLines!
+  Tukui_PowerWordShieldTooltip\SetUnitBuff('player', 'Power Word: Shield')
+  tonumber( Tukui_PowerWordShieldTooltipTextLeft2\GetText!\match(".* (%d+%s?) .*") )
 
 mod.ADDON_LOADED = (addon) =>
-  if addon == 'Tukui_PowerWordShield'
+  if addon == N
     self\UnregisterEvent('ADDON_LOADED')
-    self\SetAlpha(0)
+    self\Hide!
 
     playerGUID = UnitGUID('player')
 
@@ -45,24 +44,20 @@ mod.ADDON_LOADED = (addon) =>
     self.ADDON_LOADED = nil
     true
 
-events =
-  SPELL_AURA_APPLIED: true
-  SPELL_AURA_REMOVED: true
-  SPELL_AURA_REFRESH: true
-
 mod.COMBAT_LOG_EVENT_UNFILTERED = (...) =>
-  _, event, _, _, _, _, _, dstGUID, _, _, _, spellID = ...
+  _, event, _, _, _, _, _, dstGUID, _, _, _, spellID, _, _, _, _, _, _, _, absorbed = ...
 
-  return nil if dstGUID ~= playerGUID
+  if dstGUID ~= playerGUID
+    return nil
 
   if spellID == 17 -- shield
     if event == 'SPELL_AURA_REMOVED'
-      self\FadeOut!
-    elseif event == 'SPELL_AURA_REFRESH'
-      duration = 15
+      self\Hide!
     elseif event == 'SPELL_AURA_APPLIED'
       duration = 15
-      self\FadeIn!
+      self\Show!
+    elseif event == 'SPELL_AURA_REFRESH'
+      duration = 15
 
   elseif spellID == 96219 -- holy walk
     holyWalk = event ~= 'SPELL_AURA_REMOVED'
@@ -70,15 +65,14 @@ mod.COMBAT_LOG_EVENT_UNFILTERED = (...) =>
   true
 
 mod.PLAYER_ENTERING_WORLD = =>
-  _, instanceType = IsInInstance!
-  self\Hide! if instanceType == 'arena'
-  true
+  if select(2, IsInInstance!) == 'arena'
+    self\Hide!
+    true
 
 mod.OnUpdate = (delay) =>
-  self\Hide! if self\GetAlpha! == 0
+  self.label\SetText(ParseTooltip!)
 
   duration = duration - delay
-  self.label\SetText(ParseTooltip!) -- todo: optimize
 
   self\SetValue(duration)
 
@@ -87,12 +81,4 @@ mod.OnUpdate = (delay) =>
   else
     self\SetStatusBarColor(1, duration / 15, 0, 0.3)
 
-  true
-
-mod.FadeIn = =>
-  UIFrameFadeIn(self, 0.15, 0, 1) if not self\IsVisible!
-  true
-
-mod.FadeOut = =>
-  UIFrameFadeOut(self, 0.15, 1, 0) if self\IsVisible!
   true
