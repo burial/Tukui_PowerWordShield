@@ -64,11 +64,6 @@ mod.COMBAT_LOG_EVENT_UNFILTERED = (...) =>
 
   true
 
-mod.PLAYER_ENTERING_WORLD = =>
-  if select(2, IsInInstance!) == 'arena'
-    self\Hide!
-    true
-
 mod.OnUpdate = (delay) =>
   self.label\SetText(ParseTooltip!)
 

@@ -59,12 +59,6 @@ mod.COMBAT_LOG_EVENT_UNFILTERED = function(self, ...)
   end
   return true
 end
-mod.PLAYER_ENTERING_WORLD = function(self)
-  if select(2, IsInInstance()) == 'arena' then
-    self:Hide()
-    return true
-  end
-end
 mod.OnUpdate = function(self, delay)
   self.label:SetText(ParseTooltip())
   duration = duration - delay
